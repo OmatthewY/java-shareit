@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private static final int MAX_SIZE_NAME = 30;
-    private static final int MAX_SIZE_DESCRIPTION = 150;
 
     @Override
     public Collection<ItemDto> getAllByUsersId(Long userId) {
@@ -52,17 +50,16 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("ID пользователя отличается от ID 'владельца'");
         }
 
-        if (item.getName() != null && !item.getName().isBlank() && item.getName().length() <= MAX_SIZE_NAME) {
+        if (item.getName() != null && !item.getName().isBlank()) {
             updatedItem.setName(item.getName());
         }
-        if (item.getDescription() != null && !item.getDescription().isBlank()
-                && item.getDescription().length() <= MAX_SIZE_DESCRIPTION) {
+        if (item.getDescription() != null && !item.getDescription().isBlank()) {
             updatedItem.setDescription(item.getDescription());
         }
         if (item.getAvailable() != null) {
             updatedItem.setAvailable(item.getAvailable());
         }
-        return ItemMapper.toItemDto(itemRepository.update(userId, itemId, updatedItem));
+        return ItemMapper.toItemDto(updatedItem);
     }
 
     @Override

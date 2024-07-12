@@ -8,9 +8,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ErrorResponse {
-    String message;
+    private String message;
 
-    String stackTrace;
+    private String stackTrace;
 
     public ErrorResponse(String message) {
         this.message = message;

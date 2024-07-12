@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private static final int MAX_SIZE = 30;
 
     @Override
     public Collection<UserDto> getAll() {
@@ -53,18 +52,16 @@ public class UserServiceImpl implements UserService {
                 });
         User user = UserMapper.toUser(userDto);
 
-        if (user.getName() != null && !user.getName().isBlank()
-                && user.getName().length() <= MAX_SIZE) {
+        if (user.getName() != null && !user.getName().isBlank()) {
             userToUpdate.setName(user.getName());
         }
 
         if (user.getEmail() != null && !user.getEmail().isBlank()
-                && user.getEmail().length() <= MAX_SIZE
                 && !userToUpdate.getEmail().equals(user.getEmail())) {
             userRepository.changeEmail(user.getEmail(), userToUpdate.getEmail());
             userToUpdate.setEmail(user.getEmail());
         }
-        return UserMapper.toUserDto(userRepository.update(userId, userToUpdate));
+        return UserMapper.toUserDto(userToUpdate);
     }
 
     @Override

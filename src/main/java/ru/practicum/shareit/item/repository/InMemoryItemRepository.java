@@ -37,7 +37,7 @@ public class InMemoryItemRepository implements ItemRepository {
     public void delete(Long userId, Long itemId) {
         if (userId.equals(items.get(itemId).getOwnerId())) {
             Item item = items.remove(itemId);
-            itemsByOwner.computeIfAbsent(userId, k -> new ArrayList<>()).remove(item);
+            itemsByOwner.getOrDefault(userId, new ArrayList<>()).remove(item);
             if (itemsByOwner.get(userId).isEmpty()) {
                 itemsByOwner.remove(userId);
             }
