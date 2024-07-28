@@ -1,47 +1,37 @@
 package ru.practicum.shareit.item.mapper;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+import ru.practicum.shareit.booking.dto.BookingForItemDto;
+import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.model.Item;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ItemMapper {
+import java.util.Collection;
 
-    public static ItemDto toItemDto(Item item) {
-        if (item == null) {
-            return null;
-        }
-        return ItemDto.builder()
+@Mapper
+public interface ItemMapper {
+    ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
+
+    ItemDto toItemDto(Item item);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    Item toItem(ItemCreateDto itemCreateDto);
+
+    default ItemInfoDto toItemInfoDto(Item item, BookingForItemDto lastBooking, BookingForItemDto nextBooking,
+                                      Long userId, Collection<CommentDto> comments) {
+        return ItemInfoDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .build();
-    }
-
-    public static Item toItem(ItemDto itemDto) {
-        if (itemDto == null) {
-            return null;
-        }
-        return Item.builder()
-                .id(itemDto.getId())
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .available(itemDto.getAvailable())
-                .build();
-    }
-
-    public static Item toItem(ItemDto itemDto, Long userId) {
-        if (itemDto == null) {
-            return null;
-        }
-        return Item.builder()
-                .id(itemDto.getId())
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .available(itemDto.getAvailable())
-                .ownerId(userId)
+                .lastBooking(item.getOwner().getId().equals(userId) ? lastBooking : null)
+                .nextBooking(item.getOwner().getId().equals(userId) ? nextBooking : null)
+                .comments(comments)
                 .build();
     }
 }
