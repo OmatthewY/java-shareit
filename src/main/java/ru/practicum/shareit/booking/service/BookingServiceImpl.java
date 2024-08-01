@@ -96,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto updateStatus(Long ownerId, Long bookingId, boolean approved) {
-        checkUserExistence(ownerId, "UPDATE BOOKING STATUS");
+        checkUserExistenceForStatus(ownerId, "UPDATE BOOKING STATUS");
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> {
                     log.info("UPDATE BOOKING STATUS Аренды с id = {} не найден", bookingId);
@@ -162,6 +162,13 @@ public class BookingServiceImpl implements BookingService {
         if (!userRepository.existsById(userId)) {
             log.info("{} Пользователь с id = {} не найден", method, userId);
             throw new NotFoundException("Пользователя с id = " + userId + " не существует");
+        }
+    }
+
+    private void checkUserExistenceForStatus(Long userId, String method) {
+        if (!userRepository.existsById(userId)) {
+            log.info("{} Пользователь с id = {} не найден для обновления статуса бронирования", method, userId);
+            throw new ValidationException("Пользователя с id = " + userId + " не существует");
         }
     }
 }

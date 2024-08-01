@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -12,5 +13,6 @@ public interface UserMapper {
 
     UserDto toUserDto(User user);
 
+    @Mapping(target = "id", ignore = true)
     User toUser(UserCreateDto userCreateDto);
 }

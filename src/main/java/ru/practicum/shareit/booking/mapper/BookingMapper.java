@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -38,5 +39,9 @@ public interface BookingMapper {
                 .build();
     }
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "item", ignore = true)
+    @Mapping(target = "booker", ignore = true)
+    @Mapping(target = "status", ignore = true)
     Booking toBooking(BookingCreateDto bookingCreateDto);
 }
