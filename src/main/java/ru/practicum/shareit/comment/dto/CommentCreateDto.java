@@ -1,20 +1,18 @@
 package ru.practicum.shareit.comment.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-public class CommentDto {
-    private Long id;
-
+@NoArgsConstructor
+@AllArgsConstructor
+public class CommentCreateDto {
     @Size(max = 150, message = "Комментарий не может быть длиннее 150 символов")
+    @NotBlank(message = "Комментарий не может быть пустым")
     private String text;
-
-    private Long itemId;
-    private String authorName;
-    private LocalDateTime created;
 }

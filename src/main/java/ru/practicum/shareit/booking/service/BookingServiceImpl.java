@@ -56,12 +56,34 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("У вас не было найдено такого бронирования");
         }
 
+        validateBookingDates(bookingCreateDto.getStart(), bookingCreateDto.getEnd());
+
         Booking booking = BookingMapper.INSTANCE.toBooking(bookingCreateDto);
         booking.setBooker(user);
         booking.setItem(item);
         booking.setStatus(BookingStatus.WAITING);
 
         return BookingMapper.INSTANCE.toBookingDto(bookingRepository.save(booking));
+    }
+
+    private void validateBookingDates(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime now = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
+
+        if (start == null || end == null) {
+            throw new ValidationException("Дата не может быть пустой");
+        }
+
+        if (start.isBefore(now)) {
+            throw new ValidationException("Дата и время начала бронирования не должны быть в прошлом");
+        }
+
+        if (end.isBefore(now)) {
+            throw new ValidationException("Дата и время конца бронирования не должны быть в прошлом");
+        }
+
+        if (!start.isBefore(end)) {
+            throw new ValidationException("Дата начала бронирования должна быть раньше даты окончания бронирования");
+        }
     }
 
     @Override
@@ -130,10 +152,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkUserExistence(Long userId, String method) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("{} Пользователь с id = {} не найден", method, userId);
-                    return new NotFoundException("Пользователя с id = " + userId + " не существует");
-                });
+        if (!userRepository.existsById(userId)) {
+            log.info("{} Пользователь с id = {} не найден", method, userId);
+            throw new NotFoundException("Пользователя с id = " + userId + " не существует");
+        }
     }
 }

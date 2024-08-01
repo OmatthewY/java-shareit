@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.model;
 
+import java.util.Optional;
+
 public enum BookingState {
     ALL,
     CURRENT,
@@ -8,12 +10,12 @@ public enum BookingState {
     WAITING,
     REJECTED;
 
-    public static BookingState from(String state) {
+    public static Optional<BookingState> from(String state) {
         for (BookingState bookingState : BookingState.values()) {
             if (bookingState.name().equalsIgnoreCase(state)) {
-                return bookingState;
+                return Optional.of(bookingState);
             }
         }
-        return null;
+        return Optional.empty();
     }
 }

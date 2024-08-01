@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
-import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
@@ -23,7 +23,7 @@ public interface ItemMapper {
     Item toItem(ItemCreateDto itemCreateDto);
 
     default ItemInfoDto toItemInfoDto(Item item, BookingForItemDto lastBooking, BookingForItemDto nextBooking,
-                                      Long userId, Collection<CommentDto> comments) {
+                                      Long userId, Collection<CommentResponseDto> comments) {
         return ItemInfoDto.builder()
                 .id(item.getId())
                 .name(item.getName())

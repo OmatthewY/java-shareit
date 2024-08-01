@@ -9,10 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,9 +20,7 @@ import org.hibernate.proxy.HibernateProxy;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Objects;
 
 @Entity
@@ -61,28 +56,6 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private BookingStatus status;
-
-    @PrePersist
-    @PreUpdate
-    private void validateDates() {
-        LocalDateTime now = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
-
-        if (start == null || end == null) {
-            throw new ValidationException("Дата не может быть пустой");
-        }
-
-        if (start.isBefore(now)) {
-            throw new ValidationException("Дата и время начала бронирования не должны быть в прошлом");
-        }
-
-        if (end.isBefore(now)) {
-            throw new ValidationException("Дата и время конца бронирования не должны быть в прошлом");
-        }
-
-        if (!start.isBefore(end)) {
-            throw new ValidationException("Дата начала бронирования должна быть раньше даты окончания бронирования");
-        }
-    }
 
     @Override
     public final boolean equals(Object o) {

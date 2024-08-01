@@ -9,7 +9,8 @@ import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.dto.CommentCreateDto;
+import ru.practicum.shareit.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.comment.repository.CommentRepository;
@@ -25,9 +26,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,9 +41,34 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemInfoDto> getAllByUsersId(long userId) {
         checkUserExistence(userId, "GET ALL BY USERS ID");
-        return itemRepository.findAllByOwnerId(userId).stream()
+
+        List<Item> items = itemRepository.findAllByOwnerId(userId).stream()
                 .sorted(Comparator.comparingLong(Item::getId))
-                .map(item -> getById(userId, item.getId()))
+                .collect(Collectors.toList());
+
+        Map<Long, List<Comment>> commentsMap = commentRepository.findByItemIn(items).stream()
+                .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
+
+        List<Booking> lastBookings = bookingRepository.findLastBookingsByItemIds(
+                items.stream().map(Item::getId).collect(Collectors.toList()));
+        Map<Long, List<Booking>> lastBookingsMap = lastBookings.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+
+        List<Booking> upcomingBookings = bookingRepository.findUpcomingBookingsByItemIds(
+                items.stream().map(Item::getId).collect(Collectors.toList()));
+        Map<Long, List<Booking>> upcomingBookingsMap = upcomingBookings.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+
+        return items.stream()
+                .map(item -> {
+                    long itemId = item.getId();
+                    BookingForItemDto lastBooking = getLastBookingForItem(itemId, lastBookingsMap);
+                    BookingForItemDto nextBooking = getNextBookingForItem(itemId, upcomingBookingsMap);
+                    Collection<CommentResponseDto> comments = commentsMap.getOrDefault(itemId, Collections.emptyList())
+                            .stream()
+                            .map(CommentMapper.INSTANCE::toCommentResponseDto).collect(Collectors.toList());
+                    return ItemMapper.INSTANCE.toItemInfoDto(item, lastBooking, nextBooking, userId, comments);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -56,18 +80,35 @@ public class ItemServiceImpl implements ItemService {
                     log.info("GET ITEM BY ID Предмет с id = {} не найден", itemId);
                     return new NotFoundException("Предмета с id = " + itemId + " не существует");
                 });
-        List<Booking> lastBookings = bookingRepository.findLastBookingsByItemId(itemId);
-        BookingForItemDto lastBooking = lastBookings.isEmpty() ? null :
-                BookingMapper.INSTANCE.toBookingForItemDto(lastBookings.getFirst());
 
-        List<Booking> upcomingBookings = bookingRepository.findUpcomingBookingsByItemId(itemId);
-        BookingForItemDto nextBooking = upcomingBookings.isEmpty() ? null :
-                BookingMapper.INSTANCE.toBookingForItemDto(upcomingBookings.getFirst());
+        List<Booking> allBookings = bookingRepository.findLastBookingsByItemIds(Collections.singletonList(itemId));
+        Map<Long, List<Booking>> lastBookingsMap = allBookings.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
 
-        Collection<CommentDto> comments = commentRepository.findAllByItemId(itemId).stream()
-                .map(CommentMapper.INSTANCE::toCommentDto).collect(Collectors.toList());
+        List<Booking> upcomingBookings = bookingRepository
+                .findUpcomingBookingsByItemIds(Collections.singletonList(itemId));
+        Map<Long, List<Booking>> upcomingBookingsMap = upcomingBookings.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+
+        BookingForItemDto lastBooking = getLastBookingForItem(itemId, lastBookingsMap);
+        BookingForItemDto nextBooking = getNextBookingForItem(itemId, upcomingBookingsMap);
+
+        Collection<CommentResponseDto> comments = commentRepository.findAllByItemId(itemId).stream()
+                .map(CommentMapper.INSTANCE::toCommentResponseDto).collect(Collectors.toList());
 
         return ItemMapper.INSTANCE.toItemInfoDto(item, lastBooking, nextBooking, userId, comments);
+    }
+
+    private BookingForItemDto getLastBookingForItem(long itemId, Map<Long, List<Booking>> lastBookingsMap) {
+        List<Booking> lastBookingsForItem = lastBookingsMap.get(itemId);
+        return (lastBookingsForItem == null || lastBookingsForItem.isEmpty()) ? null
+                : BookingMapper.INSTANCE.toBookingForItemDto(lastBookingsForItem.getFirst());
+    }
+
+    private BookingForItemDto getNextBookingForItem(long itemId, Map<Long, List<Booking>> upcomingBookingsMap) {
+        List<Booking> upcomingBookingsForItem = upcomingBookingsMap.get(itemId);
+        return (upcomingBookingsForItem == null || upcomingBookingsForItem.isEmpty()) ? null
+                : BookingMapper.INSTANCE.toBookingForItemDto(upcomingBookingsForItem.getFirst());
     }
 
     @Override
@@ -127,7 +168,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public CommentDto addComment(long itemId, long userId, CommentDto commentDto) {
+    public CommentResponseDto addComment(long itemId, long userId, CommentCreateDto commentCreateDto) {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.info("ADD COMMENT Пользователь с id = {} не найден", userId);
@@ -139,26 +180,19 @@ public class ItemServiceImpl implements ItemService {
                     return new NotFoundException("Предмета с id = " + itemId + " не существует");
                 });
 
-        List<Booking> endedBookings = bookingRepository.findLastBookingsByItemId(itemId);
+        boolean hasBooked = bookingRepository.existsByItemIdAndBookerIdAndEndBefore(itemId, userId,
+                LocalDateTime.now());
 
-        String text = commentDto.getText();
-        if (text.isEmpty()) {
-            throw new ValidationException("Комментарий не может быть пустым");
+        if (!hasBooked) {
+            throw new ValidationException("Вы не можете оставить отзыв на данный предмет.");
         }
 
-        for (Booking booking : endedBookings) {
-            if (booking.getBooker().getId().equals(userId)) {
-                Comment comment = Comment.builder()
-                        .text(text)
-                        .item(item)
-                        .author(author)
-                        .created(LocalDateTime.now())
-                        .build();
-                return CommentMapper.INSTANCE.toCommentDto(commentRepository.save(comment));
-            }
-        }
+        Comment comment = CommentMapper.INSTANCE.toComment(commentCreateDto);
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setCreated(LocalDateTime.now());
 
-        throw new ValidationException("Вы не можете оставить отзыв на данный предмет.");
+        return CommentMapper.INSTANCE.toCommentResponseDto(commentRepository.save(comment));
     }
 
     private void checkUserExistence(Long userId, String method) {

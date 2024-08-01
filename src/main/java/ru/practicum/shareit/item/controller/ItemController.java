@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -13,7 +14,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.dto.CommentCreateDto;
+import ru.practicum.shareit.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemInfoDto;
@@ -64,15 +66,16 @@ public class ItemController {
 
     @GetMapping("/search")
     public Collection<ItemDto> getAllByText(@RequestParam String text) {
-        if (text.isEmpty()) {
+        if (text.isBlank()) {
             return Collections.emptyList();
         }
         return itemService.getAllByText(text);
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto addComment(@RequestHeader(USER_ID_HEADER) long userId,
-                                 @PathVariable long itemId, @RequestBody CommentDto commentDto) {
-        return itemService.addComment(itemId, userId, commentDto);
+    public CommentResponseDto addComment(@RequestHeader(USER_ID_HEADER) long userId,
+                                         @PathVariable long itemId,
+                                         @Valid @RequestBody CommentCreateDto commentCreateDto) {
+        return itemService.addComment(itemId, userId, commentCreateDto);
     }
 }
