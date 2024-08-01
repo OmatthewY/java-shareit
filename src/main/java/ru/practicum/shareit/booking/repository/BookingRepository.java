@@ -49,4 +49,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findLastBookingsByItemIds(@Param("itemIds") List<Long> itemIds);
 
     boolean existsByItemIdAndBookerIdAndEndBefore(Long itemId, Long bookerId, LocalDateTime end);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND (b.status = 'APPROVED' OR b.status = 'WAITING') " +
+            "AND (b.start < :end AND b.end > :start)")
+    List<Booking> findConflictingBookings(@Param("itemId") Long itemId, @Param("start") LocalDateTime start,
+                                          @Param("end") LocalDateTime end);
 }

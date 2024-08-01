@@ -25,7 +25,9 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -181,7 +183,7 @@ public class ItemServiceImpl implements ItemService {
                 });
 
         boolean hasBooked = bookingRepository.existsByItemIdAndBookerIdAndEndBefore(itemId, userId,
-                LocalDateTime.now());
+                LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
 
         if (!hasBooked) {
             throw new ValidationException("Вы не можете оставить отзыв на данный предмет.");

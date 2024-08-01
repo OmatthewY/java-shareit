@@ -42,6 +42,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(UserCreateDto userCreateDto) {
+        checkEmailUnique(userCreateDto.getEmail());
         User user = userRepository.save(UserMapper.INSTANCE.toUser(userCreateDto));
         return UserMapper.INSTANCE.toUserDto(user);
     }
@@ -61,6 +62,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userUpdateDto.getEmail() != null && !userUpdateDto.getEmail().isBlank()) {
+            checkEmailUnique(userUpdateDto.getEmail());
             userToUpdate.setEmail(userUpdateDto.getEmail());
         }
         return UserMapper.INSTANCE.toUserDto(userToUpdate);
@@ -79,5 +81,12 @@ public class UserServiceImpl implements UserService {
                     log.info("{} Пользователь с id = {} не найден", method, userId);
                     return new NotFoundException("Пользователя с id = " + userId + " не существует");
                 });
+    }
+
+    private void checkEmailUnique(String email) {
+        if (userRepository.existsByEmail(email)) {
+            log.info("Пользователь с email = {} уже существует", email);
+            throw new IllegalArgumentException("Пользователь с таким email уже существует");
+        }
     }
 }
