@@ -1,16 +1,31 @@
 package ru.practicum.shareit.item.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.comment.dto.CommentCreateDto;
+import ru.practicum.shareit.comment.dto.CommentResponseDto;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.validator.Create;
-import ru.practicum.shareit.validator.Update;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import static ru.practicum.shareit.constants.UserIdHttpHeader.USER_ID_HEADER;
 
 @Slf4j
 @Validated
@@ -19,59 +34,48 @@ import java.util.Collections;
 @RequestMapping("/items")
 public class ItemController {
     private final ItemService itemService;
-    private static final String X_SHARER_USER_ID = "X-Sharer-User-Id";
 
     @GetMapping
-    public Collection<ItemDto> getAllByUsersId(@RequestHeader(X_SHARER_USER_ID) Long userId) {
-        log.info("GET /items запрос");
-        Collection<ItemDto> items = itemService.getAllByUsersId(userId);
-        log.info("GET /items ответ: запрос выполнен успешно {}", items.size());
-        return items;
+    public Collection<ItemInfoDto> getAllByUsersId(@RequestHeader(USER_ID_HEADER) long userId) {
+        return itemService.getAllByUsersId(userId);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getById(@PathVariable Long itemId) {
-        log.info("GET /items/{} запрос", itemId);
-        ItemDto itemDto = itemService.getById(itemId);
-        log.info("GET /items/{} ответ: запрос выполнен успешно {}", itemId, itemDto);
-        return itemDto;
+    public ItemInfoDto getById(@RequestHeader(USER_ID_HEADER) long userId, @PathVariable long itemId) {
+        return itemService.getById(userId, itemId);
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader(X_SHARER_USER_ID) Long userId,
-                       @Validated(Create.class) @RequestBody ItemDto itemDto) {
-        log.info("POST /items запрос: {}", itemDto);
-        ItemDto createdItemDto = itemService.add(userId, itemDto);
-        log.info("POST /items ответ: запрос выполнен успешно {}", createdItemDto);
-        return createdItemDto;
+    public ItemDto add(@RequestHeader(USER_ID_HEADER) long userId,
+                          @Validated @RequestBody ItemCreateDto itemCreateDto) {
+        return itemService.add(userId, itemCreateDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto update(@RequestHeader(X_SHARER_USER_ID) Long userId,
-                          @Validated(Update.class) @PathVariable Long itemId,
-                          @RequestBody ItemDto itemDto) {
-        log.info("PATCH /items/{} запрос: {}", itemId, itemDto);
-        ItemDto updatedItemDto = itemService.update(userId, itemId, itemDto);
-        log.info("PATCH /items/{} ответ: запрос выполнен успешно {}", itemId, updatedItemDto);
-        return updatedItemDto;
+    public ItemDto update(@RequestHeader(USER_ID_HEADER) long userId,
+                          @PathVariable long itemId,
+                          @Validated @RequestBody ItemUpdateDto itemUpdateDto) {
+        return itemService.update(userId, itemId, itemUpdateDto);
     }
 
     @DeleteMapping("/{itemId}")
-    public void delete(@RequestHeader(X_SHARER_USER_ID) Long userId,
-                       @PathVariable Long itemId) {
-        log.info("DELETE /items/{} запрос", itemId);
-        itemService.delete(userId, itemId);
-        log.info("DELETE /items/{} ответ: запрос выполнен успешно", itemId);
+    public void delete(@RequestHeader(USER_ID_HEADER) long userId,
+                       @PathVariable long itemId) {
+        itemService.delete(itemId, userId);
     }
 
     @GetMapping("/search")
     public Collection<ItemDto> getAllByText(@RequestParam String text) {
-        log.info("GET /items/search?text={} запрос", text);
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        Collection<ItemDto> items = itemService.getAllByText(text);
-        log.info("GET /items/search?text={} ответ: запрос выполнен успешно {}", text, items.size());
-        return items;
+        return itemService.getAllByText(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponseDto addComment(@RequestHeader(USER_ID_HEADER) long userId,
+                                         @PathVariable long itemId,
+                                         @Valid @RequestBody CommentCreateDto commentCreateDto) {
+        return itemService.addComment(itemId, userId, commentCreateDto);
     }
 }
