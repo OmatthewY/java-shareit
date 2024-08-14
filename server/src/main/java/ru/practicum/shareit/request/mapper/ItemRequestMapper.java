@@ -12,7 +12,7 @@ import java.util.Collection;
 @Mapper
 public interface ItemRequestMapper {
     ItemRequestMapper INSTANCE = Mappers.getMapper(ItemRequestMapper.class);
-    
+
     ItemRequestDto toItemRequestDto(ItemRequest itemRequest);
 
     default ItemRequest toItemRequest(ItemRequestDto itemRequestDto) {
