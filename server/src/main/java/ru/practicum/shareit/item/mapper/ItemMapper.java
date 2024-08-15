@@ -1,7 +1,5 @@
 package ru.practicum.shareit.item.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
@@ -12,13 +10,24 @@ import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
 
-@Mapper
-public interface ItemMapper {
-    ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
+public class ItemMapper {
 
-    ItemDto toItemDto(Item item);
+    public static ItemDto toItemDto(Item item) {
+        if (item == null) {
+            return null;
+        }
+        return ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .build();
+    }
 
-    default Item toItem(ItemCreateDto itemCreateDto) {
+    public static Item toItem(ItemCreateDto itemCreateDto) {
+        if (itemCreateDto == null) {
+            return null;
+        }
         return Item.builder()
                 .name(itemCreateDto.getName())
                 .description(itemCreateDto.getDescription())
@@ -26,8 +35,11 @@ public interface ItemMapper {
                 .build();
     }
 
-    default ItemInfoDto toItemInfoDto(Item item, BookingForItemDto lastBooking, BookingForItemDto nextBooking,
-                                      Long userId, Collection<CommentResponseDto> comments) {
+    public static ItemInfoDto toItemInfoDto(Item item, BookingForItemDto lastBooking, BookingForItemDto nextBooking,
+                                            Long userId, Collection<CommentResponseDto> comments) {
+        if (item == null) {
+            return null;
+        }
         return ItemInfoDto.builder()
                 .id(item.getId())
                 .name(item.getName())
@@ -39,7 +51,10 @@ public interface ItemMapper {
                 .build();
     }
 
-    default ItemForRequestDto toItemForRequestDto(Item item) {
+    public static ItemForRequestDto toItemForRequestDto(Item item) {
+        if (item == null) {
+            return null;
+        }
         return ItemForRequestDto.builder()
                 .id(item.getId())
                 .name(item.getName())

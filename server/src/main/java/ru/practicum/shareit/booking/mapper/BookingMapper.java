@@ -1,17 +1,16 @@
 package ru.practicum.shareit.booking.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.model.Booking;
 
-@Mapper
-public interface BookingMapper {
-    BookingMapper INSTANCE = Mappers.getMapper(BookingMapper.class);
+public class BookingMapper {
 
-    default BookingDto toBookingDto(Booking booking) {
+    public static BookingDto toBookingDto(Booking booking) {
+        if (booking == null) {
+            return null;
+        }
         return BookingDto.builder()
                 .id(booking.getId())
                 .start(booking.getStart())
@@ -27,7 +26,10 @@ public interface BookingMapper {
                 .build();
     }
 
-    default BookingForItemDto toBookingForItemDto(Booking booking) {
+    public static BookingForItemDto toBookingForItemDto(Booking booking) {
+        if (booking == null) {
+            return null;
+        }
         return BookingForItemDto.builder()
                 .id(booking.getId())
                 .start(booking.getStart())
@@ -38,7 +40,10 @@ public interface BookingMapper {
                 .build();
     }
 
-    default Booking toBooking(BookingCreateDto bookingCreateDto) {
+    public static Booking toBooking(BookingCreateDto bookingCreateDto) {
+        if (bookingCreateDto == null) {
+            return null;
+        }
         return Booking.builder()
                 .start(bookingCreateDto.getStart())
                 .end(bookingCreateDto.getEnd())

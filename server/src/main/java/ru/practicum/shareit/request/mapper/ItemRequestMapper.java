@@ -1,7 +1,5 @@
 package ru.practicum.shareit.request.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.item.dto.ItemForRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestInfoDto;
@@ -9,21 +7,34 @@ import ru.practicum.shareit.request.model.ItemRequest;
 
 import java.util.Collection;
 
-@Mapper
-public interface ItemRequestMapper {
-    ItemRequestMapper INSTANCE = Mappers.getMapper(ItemRequestMapper.class);
+public class ItemRequestMapper {
 
-    ItemRequestDto toItemRequestDto(ItemRequest itemRequest);
+    public static ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
+        if (itemRequest == null) {
+            return null;
+        }
+        return ItemRequestDto.builder()
+                .id(itemRequest.getId())
+                .description(itemRequest.getDescription())
+                .created(itemRequest.getCreated())
+                .build();
+    }
 
-    default ItemRequest toItemRequest(ItemRequestDto itemRequestDto) {
+    public static ItemRequest toItemRequest(ItemRequestDto itemRequestDto) {
+        if (itemRequestDto == null) {
+            return null;
+        }
         return ItemRequest.builder()
                 .description(itemRequestDto.getDescription())
                 .created(itemRequestDto.getCreated())
                 .build();
     }
 
-    default ItemRequestInfoDto toItemRequestInfoDto(ItemRequest itemRequest,
-                                                    Collection<ItemForRequestDto> itemsForRequest) {
+    public static ItemRequestInfoDto toItemRequestInfoDto(ItemRequest itemRequest,
+                                                   Collection<ItemForRequestDto> itemsForRequest) {
+        if (itemRequest == null) {
+            return null;
+        }
         return ItemRequestInfoDto.builder()
                 .id(itemRequest.getId())
                 .description(itemRequest.getDescription())

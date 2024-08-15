@@ -39,11 +39,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                     log.info("CREATE-REQUEST Пользователь с id={} не найден", userId);
                     return new NotFoundException("Пользователя с id=" + userId + " не существует");
                 });
-        ItemRequest itemRequest = ItemRequestMapper.INSTANCE.toItemRequest(itemRequestDto);
+        ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto);
         itemRequest.setRequestor(user);
         itemRequest.setCreated(LocalDateTime.now());
 
-        return ItemRequestMapper.INSTANCE.toItemRequestDto(itemRequestRepository.save(itemRequest));
+        return ItemRequestMapper.toItemRequestDto(itemRequestRepository.save(itemRequest));
     }
 
     @Override
@@ -68,9 +68,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 });
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
         return itemRequestRepository.findAllByOrderByCreatedDesc(page).stream()
-                .map(ItemRequestMapper.INSTANCE::toItemRequestDto).collect(Collectors.toList());
-
-
+                .map(ItemRequestMapper::toItemRequestDto).collect(Collectors.toList());
     }
 
     @Override
@@ -86,10 +84,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                     return new NotFoundException("Запроса с id=" + userId + " не существует");
                 });
         Collection<ItemForRequestDto> items = itemRepository.findAllByRequestId(requestId).stream()
-                .map(ItemMapper.INSTANCE::toItemForRequestDto)
+                .map(ItemMapper::toItemForRequestDto)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        return ItemRequestMapper.INSTANCE.toItemRequestInfoDto(request, items);
+        return ItemRequestMapper.toItemRequestInfoDto(request, items);
     }
 }

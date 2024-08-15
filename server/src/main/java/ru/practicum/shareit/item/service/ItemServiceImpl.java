@@ -70,8 +70,8 @@ public class ItemServiceImpl implements ItemService {
                     BookingForItemDto nextBooking = getNextBookingForItem(itemId, upcomingBookingsMap);
                     Collection<CommentResponseDto> comments = commentsMap.getOrDefault(itemId, Collections.emptyList())
                             .stream()
-                            .map(CommentMapper.INSTANCE::toCommentResponseDto).collect(Collectors.toList());
-                    return ItemMapper.INSTANCE.toItemInfoDto(item, lastBooking, nextBooking, userId, comments);
+                            .map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+                    return ItemMapper.toItemInfoDto(item, lastBooking, nextBooking, userId, comments);
                 })
                 .collect(Collectors.toList());
     }
@@ -98,21 +98,21 @@ public class ItemServiceImpl implements ItemService {
         BookingForItemDto nextBooking = getNextBookingForItem(itemId, upcomingBookingsMap);
 
         Collection<CommentResponseDto> comments = commentRepository.findAllByItemId(itemId).stream()
-                .map(CommentMapper.INSTANCE::toCommentResponseDto).collect(Collectors.toList());
+                .map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
 
-        return ItemMapper.INSTANCE.toItemInfoDto(item, lastBooking, nextBooking, userId, comments);
+        return ItemMapper.toItemInfoDto(item, lastBooking, nextBooking, userId, comments);
     }
 
     private BookingForItemDto getLastBookingForItem(long itemId, Map<Long, List<Booking>> lastBookingsMap) {
         List<Booking> lastBookingsForItem = lastBookingsMap.get(itemId);
         return (lastBookingsForItem == null || lastBookingsForItem.isEmpty()) ? null
-                : BookingMapper.INSTANCE.toBookingForItemDto(lastBookingsForItem.getFirst());
+                : BookingMapper.toBookingForItemDto(lastBookingsForItem.getFirst());
     }
 
     private BookingForItemDto getNextBookingForItem(long itemId, Map<Long, List<Booking>> upcomingBookingsMap) {
         List<Booking> upcomingBookingsForItem = upcomingBookingsMap.get(itemId);
         return (upcomingBookingsForItem == null || upcomingBookingsForItem.isEmpty()) ? null
-                : BookingMapper.INSTANCE.toBookingForItemDto(upcomingBookingsForItem.getFirst());
+                : BookingMapper.toBookingForItemDto(upcomingBookingsForItem.getFirst());
     }
 
     @Override
@@ -123,7 +123,7 @@ public class ItemServiceImpl implements ItemService {
                     log.info("ADD ITEM Пользователь с id = {} не найден", userId);
                     return new NotFoundException("Пользователя с id = " + userId + " не существует");
                 });
-        Item item = ItemMapper.INSTANCE.toItem(itemCreateDto);
+        Item item = ItemMapper.toItem(itemCreateDto);
         item.setOwner(user);
 
         if (itemCreateDto.getRequestId() != null) {
@@ -135,7 +135,7 @@ public class ItemServiceImpl implements ItemService {
                     });
             item.setRequest(request);
         }
-        return ItemMapper.INSTANCE.toItemDto(itemRepository.save(item));
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
@@ -160,7 +160,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemUpdateDto.getAvailable() != null) {
             updatedItem.setAvailable(itemUpdateDto.getAvailable());
         }
-        return ItemMapper.INSTANCE.toItemDto(itemRepository.save(updatedItem));
+        return ItemMapper.toItemDto(itemRepository.save(updatedItem));
     }
 
     @Override
@@ -176,7 +176,7 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemDto> getAllByText(String text) {
         List<Item> items = itemRepository.searchByText(text.toLowerCase());
         return items.stream()
-                .map(ItemMapper.INSTANCE::toItemDto)
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
@@ -201,12 +201,12 @@ public class ItemServiceImpl implements ItemService {
             throw new IllegalArgumentException("Вы не можете оставить отзыв на данный предмет.");
         }
 
-        Comment comment = CommentMapper.INSTANCE.toComment(commentCreateDto);
+        Comment comment = CommentMapper.toComment(commentCreateDto);
         comment.setItem(item);
         comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());
 
-        return CommentMapper.INSTANCE.toCommentResponseDto(commentRepository.save(comment));
+        return CommentMapper.toCommentResponseDto(commentRepository.save(comment));
     }
 
     private void checkUserExistence(Long userId, String method) {

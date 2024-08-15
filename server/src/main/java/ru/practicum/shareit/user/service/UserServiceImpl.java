@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     public Collection<UserDto> getAll() {
         Collection<User> users = userRepository.findAll();
         return users.stream()
-                .map(UserMapper.INSTANCE::toUserDto)
+                .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
@@ -36,14 +36,14 @@ public class UserServiceImpl implements UserService {
                     log.info("GET BY ID Пользователь с id = {} не найден", userId);
                     return new NotFoundException("Пользователя с id = " + userId + " не существует");
                 });
-        return UserMapper.INSTANCE.toUserDto(user);
+        return UserMapper.toUserDto(user);
     }
 
     @Override
     @Transactional
     public UserDto create(UserCreateDto userCreateDto) {
-        User user = userRepository.save(UserMapper.INSTANCE.toUser(userCreateDto));
-        return UserMapper.INSTANCE.toUserDto(user);
+        User user = userRepository.save(UserMapper.toUser(userCreateDto));
+        return UserMapper.toUserDto(user);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
         if (userUpdateDto.getEmail() != null && !userUpdateDto.getEmail().isBlank()) {
             userToUpdate.setEmail(userUpdateDto.getEmail());
         }
-        return UserMapper.INSTANCE.toUserDto(userToUpdate);
+        return UserMapper.toUserDto(userToUpdate);
     }
 
     @Override

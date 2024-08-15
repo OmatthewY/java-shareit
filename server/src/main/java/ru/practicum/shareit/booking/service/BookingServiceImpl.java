@@ -63,12 +63,12 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Данное бронирование пересекается с существующими бронированиями");
         }
 
-        Booking booking = BookingMapper.INSTANCE.toBooking(bookingCreateDto);
+        Booking booking = BookingMapper.toBooking(bookingCreateDto);
         booking.setBooker(user);
         booking.setItem(item);
         booking.setStatus(BookingStatus.WAITING);
 
-        return BookingMapper.INSTANCE.toBookingDto(bookingRepository.save(booking));
+        return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Нельзя подтвердить операцию бронирования, она уже подтверждена.");
         }
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
-        return BookingMapper.INSTANCE.toBookingDto(bookingRepository.save(booking));
+        return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
     @Override
@@ -102,7 +102,7 @@ public class BookingServiceImpl implements BookingService {
         if (!(booking.getBooker().getId().equals(userId)) && !(booking.getItem().getOwner().getId().equals(userId))) {
             throw new NotFoundException("У вас не найдено такого бронирования или предмета.");
         }
-        return BookingMapper.INSTANCE.toBookingDto(booking);
+        return BookingMapper.toBookingDto(booking);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class BookingServiceImpl implements BookingService {
                     BookingStatus.REJECTED);
             default -> bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
         };
-        return bookings.stream().map(BookingMapper.INSTANCE::toBookingDto).collect(Collectors.toList());
+        return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
     @Override
@@ -137,7 +137,7 @@ public class BookingServiceImpl implements BookingService {
                     BookingStatus.REJECTED);
             default -> bookingRepository.findAllByItemOwnerIdOrderByStartDesc(ownerId);
         };
-        return bookings.stream().map(BookingMapper.INSTANCE::toBookingDto).collect(Collectors.toList());
+        return bookings.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
     }
 
     private void checkUserExistence(Long userId, String method) {
