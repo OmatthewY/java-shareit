@@ -22,8 +22,6 @@ services:
     container_name: gateway
     ports:
       - "8080:8080"
-    depends_on:
-      - server
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
 
